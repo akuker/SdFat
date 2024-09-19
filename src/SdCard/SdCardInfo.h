@@ -383,6 +383,87 @@ typedef struct SCR {
   }
 } scr_t;
 //==============================================================================
+/**
+ * \class sds_t
+ * \brief SD Status.
+ */
+// fields are big endian
+struct sds_t {
+  /** byte 0, bit 7-6 width, bit 5 secured mode, bits 4-0 reserved. */
+  uint8_t busWidthSecureMode;
+  /** byte 1 reserved */
+  uint8_t reserved1;
+  /** byte 2-3  zero for SD rd/wr memory card. */
+  uint8_t sdCardType[2];
+  /** byte 4-7  size of protected area big endian */
+  uint8_t sizeOfProtectedArea[4];
+  /** byte 8 speed class. */
+  uint8_t speed;
+  /** byte 9 performance move */
+  uint8_t performanceMove;
+  /** byte 10 AU size code. */
+  uint8_t auSize;
+  /** byte 11-12 erase size big endian */
+  uint8_t eraseSize[2];
+  /** byte 13 erase timeout and erase offset */
+  uint8_t eraseTimeoutOffset;
+  /** byte 14 */
+  uint8_t uhsClassAuSize;
+  /** byte 15 */
+  uint8_t videoSpeedClass;
+  /** byte 16-17 */
+  uint8_t vscAuSize[2];
+  /** byte 18-21 */
+  uint8_t susAddr[3];
+  /** byte 21 */
+  uint8_t appPerfClass;
+  /** byte 22 */
+  uint8_t perfEnhance;
+  /** byte 23 */
+  uint8_t discardFule;
+  /** byte 24 */
+  uint8_t reservedManufacturer[40];
+
+  /** \return appClass. */
+  int appClass() { return appPerfClass; }
+  /** \return AU size in KB. or zero for error. */
+  uint32_t auSizeKB() {
+    // 0XF mask and uint16_t array helps compiler optimize size on Uno.
+    uint8_t val = (auSize >> 4) & 0XF;
+    static const uint16_t au[] = {0,    16,    32,    64,    128,
+                                  256,  512,   1024,  2048,  4096,
+                                  8192, 12288, 16384, 24576, 32768};
+    return val < 0XF ? au[val] : 65536UL;
+  }
+  /** \return current bus width or -1 for error. */
+  uint8_t busWidth() const {
+    uint8_t w = busWidthSecureMode >> 6;
+    return w == 2 ? 4 : w == 0 ? 1 : -1;
+  }
+  /** \return true is discard operation is supported else true. */
+  bool discard() const { return discardFule & 2; }
+  /** \return eraseSize in AUs. */
+  uint16_t eraseSizeAU() const {
+    return (uint16_t)eraseSize[0] << 8 | (uint16_t)eraseSize[1];
+  }
+  /** \return eraseTimeout seconds. */
+  uint8_t eraseTimeout() const { return eraseTimeoutOffset >> 2; }
+  /** \return eraseOffset seconds. */
+  uint8_t eraseOffset() const { return eraseTimeoutOffset & 3; }
+  /** \return true if full user logical erase is supported else false. */
+  bool fule() const { return discardFule & 1; }
+  /** \return true for secure mode else false. */
+  bool secureMode() const { return busWidthSecureMode & 0X20; }
+  /** \return speed class or -1 for error. */
+  int speedClass() const {
+    return speed < 4 ? 2 * speed : speed == 4 ? 10 : -1;
+  }
+  /** \return UHS Speed Grade. */
+  int uhsClass() const { return uhsClassAuSize >> 4; }
+  /** \return Video Speed */
+  int videoClass() { return videoSpeedClass; }
+};
+//==============================================================================
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // fields are big endian
 typedef struct SdStatus {
