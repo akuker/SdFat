@@ -48,8 +48,13 @@
 //------------------------------------------------------------------------------
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_FEATURES 1
+#ifndef DISABLE_ARDUINO_USB
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_SERIAL 1
+#else
+/* Temporary, as we migrate away from Arduino serial */
+#define ENABLE_ARDUINO_SERIAL 0
+#endif
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_STRING 1
 //------------------------------------------------------------------------------
