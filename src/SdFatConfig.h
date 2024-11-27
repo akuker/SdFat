@@ -47,7 +47,7 @@
 // if they are in a #ifndef/#endif block below.
 //------------------------------------------------------------------------------
 /** For Debug - must be one */
-ifndef ENABLE_ARDUINO_FEATURES
+#ifndef ENABLE_ARDUINO_FEATURES
 #define ENABLE_ARDUINO_FEATURES 1
 #endif
 #ifndef DISABLE_ARDUINO_USB
